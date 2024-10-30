@@ -12,20 +12,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          persist-credentials: true  # Permite commit com credenciais do GitHub Actions
 
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
-
-      # Restaura o cache do arquivo last_posted.json
-      - name: Restore last_posted.json cache
-        uses: actions/cache@v3
-        with:
-          path: last_posted.json
-          key: last-posted-cache
-          restore-keys: |
-            last-posted-cache
 
       - name: Install dependencies
         run: |
@@ -42,9 +35,11 @@ jobs:
         run: |
           python main.py
 
-      # Atualiza o cache do arquivo last_posted.json para a próxima execução
-      - name: Update last_posted.json cache
-        uses: actions/cache@v3
-        with:
-          path: last_posted.json
-          key: last-posted-cache
+      # Commit e push do arquivo last_posted.json atualizado no repositório
+      - name: Commit last_posted.json
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add last_posted.json
+          git commit -m "Atualiza last_posted.json com novos links postados"
+          git push
