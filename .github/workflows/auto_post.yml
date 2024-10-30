@@ -1,8 +1,8 @@
-name: Post Every 5 Minutes
+name: Post Every 30 Minutes
 
 on:
   schedule:
-    - cron: "*/10 * * * *"  # Executa a cada 10 minutos p teste dps mudar p 30
+    - cron: "*/30 * * * *"  # Executa a cada 10 minutos p teste dps mudar p 30
   workflow_dispatch:        # Permite execução manual
 
 jobs:

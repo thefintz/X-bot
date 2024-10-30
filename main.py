@@ -61,6 +61,11 @@ def post_tweets():
     with open("view_links.json", "r") as file:
         links = json.load(file)
 
+    # se nao tiver links novos, termina a funcao
+    if not links:
+        print("Nenhum link novo para postar.")
+        return
+
     # carrega indicie do ultimo link q foi postado
     try:
         with open("last_posted.json", "r") as file:
