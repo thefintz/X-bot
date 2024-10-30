@@ -91,6 +91,10 @@ def post_tweets():
     # Filtra apenas os links que ainda nao foram postados
     new_links_to_post = [link for link in links if link not in posted_links]
 
+    # Debug: printa links a serem postados e o historico de links
+    print("Links ja postados:", posted_links)
+    print("Links novos a serem postados:", new_links_to_post)
+
     # Se nao houver novos links para postar, termina a funcao sem erro
     if not new_links_to_post:
         print("Nao ha novos links para serem postados.")
@@ -98,7 +102,7 @@ def post_tweets():
 
     # Posta apenas os links novos
     for link_to_post in new_links_to_post:
-        print(f"Postando tweet: {link_to_post}")  # Print informativo
+        print(f"Postando tweet: {link_to_post}")
         client.create_tweet(text=f"Link do documento: {link_to_post}")
         print(f"Tweet postado: {link_to_post}")
 
