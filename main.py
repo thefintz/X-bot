@@ -43,9 +43,24 @@ def fetch_links():
         dados = data["d"]["dados"]
         view_links = re.findall(r"OpenPopUpVer\('([^']+)'\)", dados)
         view_links = [f"https://www.rad.cvm.gov.br/ENET/{link}" for link in view_links]
-        
-    with open("view_links.json", "w") as outfile:
-        json.dump(view_links, outfile, indent=4, ensure_ascii=False)
+    
+    # Carregar links antigos
+    try:
+        with open("view_links.json", "r") as file:
+            old_links = json.load(file)
+    except FileNotFoundError:
+        old_links = []
+
+    # Adicionar apenas novos links
+    new_links = [link for link in view_links if link not in old_links]
+    
+    # Se houver novos links, atualiza o arquivo view_links.json
+    if new_links:
+        all_links = old_links + new_links
+        with open("view_links.json", "w") as outfile:
+            json.dump(all_links, outfile, indent=4, ensure_ascii=False)
+    else:
+        print("Nenhum link novo encontrado.")
 
 
 def post_tweets():
@@ -66,23 +81,36 @@ def post_tweets():
         print("Nenhum link novo para postar.")
         return
 
-    # carrega indicie do ultimo link q foi postado
+    # carrega indice do ultimo link que foi postado
     try:
         with open("last_posted.json", "r") as file:
             last_posted = json.load(file)["last_index"]
     except FileNotFoundError:
-        last_posted = -1 # comeca com primeiro link se n tiver ainda
+        last_posted = -1  # comeca com primeiro link se n tiver ainda
 
+    # posta apenas os links novos
     for i in range(last_posted + 1, len(links)):
         link_to_post = links[i]
-        client.create_tweet(text=f"Link do documento: {link_to_post}")
-        print(f"Tweet postado: {link_to_post}")
 
-        # atualiza indice do ultimo link postado
-        with open("last_posted.json", "w") as file:
-            json.dump({"last_index": i}, file)
-        
-        time.sleep(60)
+        # Verifica se já foi postado
+        try:
+            client.create_tweet(text=f"Link do documento: {link_to_post}")
+            print(f"Tweet postado: {link_to_post}")
+
+            # atualiza indice do ultimo link postado
+            with open("last_posted.json", "w") as file:
+                json.dump({"last_index": i}, file)
+
+            time.sleep(60)
+            
+        except tweepy.errors.Forbidden as e:
+            print(f"Erro ao postar: {e}")
+            if "You are not allowed to create a Tweet with duplicate content" in str(e):
+                # Salva o índice para evitar tentativa futura
+                with open("last_posted.json", "w") as file:
+                    json.dump({"last_index": i}, file)
+            else:
+                raise e  # levanta erro se for diferente
 
 fetch_links()
 post_tweets()
