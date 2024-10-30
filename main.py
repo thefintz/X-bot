@@ -51,19 +51,19 @@ def fetch_links():
     except FileNotFoundError:
         old_links = []
 
-    # Adicionar apenas novos links
+    # Adicionar apenas novos links e atualizar o arquivo view_links.json
     new_links = [link for link in view_links if link not in old_links]
-    
-    # Se houver novos links, atualiza o arquivo view_links.json
     if new_links:
-        all_links = old_links + new_links
+        view_links = old_links + new_links  # Atualiza view_links com todos os links
         with open("view_links.json", "w") as outfile:
-            json.dump(all_links, outfile, indent=4, ensure_ascii=False)
+            json.dump(view_links, outfile, indent=4, ensure_ascii=False)
+        print(f"{len(new_links)} novos links adicionados.")
     else:
         print("Nenhum link novo encontrado.")
 
+    return new_links
 
-def post_tweets():
+def post_tweets(new_links):
     api_key = os.getenv("API_KEY")
     api_secret = os.getenv("API_SECRET")
     bearer_token = os.getenv("BEARER_TOKEN")
@@ -72,35 +72,26 @@ def post_tweets():
 
     client = tweepy.Client(bearer_token, api_key, api_secret, access_token, access_token_secret)
 
-    # Le os links do arquivo json
-    with open("view_links.json", "r") as file:
-        links = json.load(file)
-
-    # Se nao houver links no arquivo, termina a funcao sem erro
-    if not links:
-        print("Nenhum link disponivel para postagem.")
-        return
-
     # Carrega historico completo de links ja postados
     try:
         with open("last_posted.json", "r") as file:
             posted_links = json.load(file)
-        print("Historico de links postados carregado:", posted_links)  # Depuracao inicial
+        print("Historico de links postados carregado:", posted_links)
     except FileNotFoundError:
         posted_links = []
         print("Arquivo last_posted.json nao encontrado; inicializando como lista vazia.")
 
     # Filtra apenas os links que ainda nao foram postados
-    new_links_to_post = [link for link in links if link not in posted_links]
-    print("Links novos a serem postados:", new_links_to_post)
+    links_to_post = [link for link in new_links if link not in posted_links]
+    print("Links novos a serem postados:", links_to_post)
 
     # Se nao houver novos links para postar, termina a funcao sem erro
-    if not new_links_to_post:
+    if not links_to_post:
         print("Nao ha novos links para serem postados.")
         return
 
     # Posta apenas os links novos
-    for link_to_post in new_links_to_post:
+    for link_to_post in links_to_post:
         print(f"Postando tweet: {link_to_post}")
         try:
             client.create_tweet(text=f"Link do documento: {link_to_post}")
@@ -113,9 +104,10 @@ def post_tweets():
         posted_links.append(link_to_post)
         with open("last_posted.json", "w") as file:
             json.dump(posted_links, file, indent=4, ensure_ascii=False)
-        print("Historico atualizado:", posted_links)  # Confirma que o historico foi salvo
+        print("Historico atualizado:", posted_links)
 
         time.sleep(60)
 
-fetch_links()
-post_tweets()
+# Executa as funcoes
+new_links = fetch_links()
+post_tweets(new_links)
