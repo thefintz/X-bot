@@ -76,6 +76,9 @@ def post_tweets():
     with open("view_links.json", "r") as file:
         links = json.load(file)
 
+    if not links:
+        return
+
     # Carrega historico completo de links ja postados
     try:
         with open("last_posted.json", "r") as file:
