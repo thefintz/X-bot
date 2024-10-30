@@ -5,7 +5,6 @@ import tweepy
 import os
 import re
 
-# Parte 1: Coleta dos links da CVM e salva em view_links.json
 def fetch_links():
     url = "https://www.rad.cvm.gov.br/ENET/frmConsultaExternaCVM.aspx/ListarDocumentos"
     headers = {
@@ -38,7 +37,7 @@ def fetch_links():
     with open("response.json", "w") as outfile:
         json.dump(response.json(), outfile, ensure_ascii=False, indent=4)
     
-    # Extrai links de view_links.json
+    # Extrai links do arquivo view_links.json
     with open("response.json", "r") as file:
         data = json.load(file)
         dados = data["d"]["dados"]
@@ -48,40 +47,37 @@ def fetch_links():
     with open("view_links.json", "w") as outfile:
         json.dump(view_links, outfile, indent=4, ensure_ascii=False)
 
-# Parte 2: Publicação no X com intervalo de tempo
+
 def post_tweets():
-    # Configuração da API do Twitter
     api_key = os.getenv("API_KEY")
     api_secret = os.getenv("API_SECRET")
+    bearer_token = os.getenv("BEARER_TOKEN")
     access_token = os.getenv("ACCESS_TOKEN")
     access_token_secret = os.getenv("ACCESS_TOKEN_SECRET")
 
-    auth = tweepy.OAuth1UserHandler(api_key, api_secret, access_token, access_token_secret)
-    api = tweepy.API(auth)
+    client = tweepy.Client(bearer_token, api_key, api_secret, access_token, access_token_secret)
 
-    # Lê os links do JSON
+    # le os links do arquivo json
     with open("view_links.json", "r") as file:
         links = json.load(file)
 
-    # Carrega o índice do último link postado
+    # carrega indicie do ultimo link q foi postado
     try:
         with open("last_posted.json", "r") as file:
             last_posted = json.load(file)["last_index"]
     except FileNotFoundError:
-        last_posted = -1  # Começa do primeiro link se o arquivo não existir
+        last_posted = -1 # comeca com primeiro link se n tiver ainda
 
-    # Publica os links com intervalo de 1 minuto entre eles
     for i in range(last_posted + 1, len(links)):
         link_to_post = links[i]
-        api.update_status(f"Confira o documento: {link_to_post}")
+        client.create_tweet(text=f"Link do documento: {link_to_post}")
         print(f"Tweet postado: {link_to_post}")
 
-        # Atualiza o índice do último link postado
+        # atualiza indice do ultimo link postado
         with open("last_posted.json", "w") as file:
             json.dump({"last_index": i}, file)
         
-        time.sleep(60)  # Espera 1 minuto antes de postar o próximo link
+        time.sleep(60)
 
-# Executa a coleta e depois a postagem
 fetch_links()
 post_tweets()
