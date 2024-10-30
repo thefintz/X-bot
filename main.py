@@ -98,6 +98,7 @@ def post_tweets():
 
     # Posta apenas os links novos
     for link_to_post in new_links_to_post:
+        print(f"Postando tweet: {link_to_post}")  # Print informativo
         client.create_tweet(text=f"Link do documento: {link_to_post}")
         print(f"Tweet postado: {link_to_post}")
 
