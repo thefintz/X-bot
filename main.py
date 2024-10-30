@@ -101,21 +101,27 @@ def post_tweets():
 
     # Posta apenas os links novos
     for link_to_post in new_links_to_post:
-        print(f"Postando tweet: {link_to_post}")
+        if link_to_post in posted_links:
+            print(f"Tweet duplicado detectado e ignorado: {link_to_post}")
+            continue  # Pula para o próximo link se já foi postado
+        
+        print(f"Postando tweet: {link_to_post}")  # Somente se o tweet for realmente novo
+        
         try:
             client.create_tweet(text=f"Link do documento: {link_to_post}")
             print(f"Tweet postado: {link_to_post}")
+            
+            # Atualiza o historico com o novo link postado
+            posted_links.append(link_to_post)
+            with open("last_posted.json", "w") as file:
+                json.dump(posted_links, file, indent=4, ensure_ascii=False)
+            print("Historico atualizado:", posted_links)  # Confirma que o historico foi salvo
+            
         except tweepy.errors.Forbidden:
-            print(f"Tweet duplicado detectado e ignorado: {link_to_post}")
-            continue
-
-        # Atualiza o historico com o novo link postado
-        posted_links.append(link_to_post)
-        with open("last_posted.json", "w") as file:
-            json.dump(posted_links, file, indent=4, ensure_ascii=False)
-        print("Historico atualizado:", posted_links)  # Confirma que o historico foi salvo
+            print(f"Erro: tentativa de tweet duplicado ignorada para o link: {link_to_post}")
 
         time.sleep(60)
+
 
 fetch_links()
 post_tweets()
