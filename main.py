@@ -76,41 +76,29 @@ def post_tweets():
     with open("view_links.json", "r") as file:
         links = json.load(file)
 
-    # se nao tiver links novos, termina a funcao
-    if not links:
-        print("Nenhum link novo para postar.")
-        return
-
     # carrega indice do ultimo link que foi postado
     try:
         with open("last_posted.json", "r") as file:
             last_posted = json.load(file)["last_index"]
     except FileNotFoundError:
-        last_posted = -1  # comeca com primeiro link se n tiver ainda
+        last_posted = -1  # começa com o primeiro link se não tiver ainda
+
+    # verifica se há novos links após o último postado
+    if last_posted >= len(links) - 1:
+        print("Não há novos links para serem postados.")
+        return
 
     # posta apenas os links novos
     for i in range(last_posted + 1, len(links)):
         link_to_post = links[i]
+        client.create_tweet(text=f"Link do documento: {link_to_post}")
+        print(f"Tweet postado: {link_to_post}")
 
-        # Verifica se já foi postado
-        try:
-            client.create_tweet(text=f"Link do documento: {link_to_post}")
-            print(f"Tweet postado: {link_to_post}")
-
-            # atualiza indice do ultimo link postado
-            with open("last_posted.json", "w") as file:
-                json.dump({"last_index": i}, file)
-
-            time.sleep(60)
-            
-        except tweepy.errors.Forbidden as e:
-            print(f"Erro ao postar: {e}")
-            if "You are not allowed to create a Tweet with duplicate content" in str(e):
-                # Salva o índice para evitar tentativa futura
-                with open("last_posted.json", "w") as file:
-                    json.dump({"last_index": i}, file)
-            else:
-                raise e  # levanta erro se for diferente
+        # atualiza índice do último link postado
+        with open("last_posted.json", "w") as file:
+            json.dump({"last_index": i}, file)
+        
+        time.sleep(60)
 
 fetch_links()
 post_tweets()
