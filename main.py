@@ -110,6 +110,7 @@ def post_tweets():
         posted_links.append(link_to_post)
         with open("last_posted.json", "w") as file:
             json.dump(posted_links, file, indent=4, ensure_ascii=False)
+        print("Historico atualizado:", posted_links)  # Debug para confirmar que o historico foi salvo
 
         time.sleep(60)
 
