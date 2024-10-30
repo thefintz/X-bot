@@ -3,6 +3,7 @@ import json
 import time
 import tweepy
 import os
+import re
 
 # Parte 1: Coleta dos links da CVM e salva em view_links.json
 def fetch_links():
