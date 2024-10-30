@@ -72,7 +72,7 @@ def post_tweets():
 
     client = tweepy.Client(bearer_token, api_key, api_secret, access_token, access_token_secret)
 
-    # le os links do arquivo json
+    # Le os links do arquivo json
     with open("view_links.json", "r") as file:
         links = json.load(file)
 
@@ -85,14 +85,13 @@ def post_tweets():
     try:
         with open("last_posted.json", "r") as file:
             posted_links = json.load(file)
+        print("Historico de links postados carregado:", posted_links)  # Depuracao inicial
     except FileNotFoundError:
         posted_links = []
+        print("Arquivo last_posted.json nao encontrado; inicializando como lista vazia.")
 
     # Filtra apenas os links que ainda nao foram postados
     new_links_to_post = [link for link in links if link not in posted_links]
-
-    # Debug: printa links a serem postados e o historico de links
-    print("Links ja postados:", posted_links)
     print("Links novos a serem postados:", new_links_to_post)
 
     # Se nao houver novos links para postar, termina a funcao sem erro
@@ -103,14 +102,18 @@ def post_tweets():
     # Posta apenas os links novos
     for link_to_post in new_links_to_post:
         print(f"Postando tweet: {link_to_post}")
-        client.create_tweet(text=f"Link do documento: {link_to_post}")
-        print(f"Tweet postado: {link_to_post}")
+        try:
+            client.create_tweet(text=f"Link do documento: {link_to_post}")
+            print(f"Tweet postado: {link_to_post}")
+        except tweepy.errors.Forbidden:
+            print(f"Tweet duplicado detectado e ignorado: {link_to_post}")
+            continue
 
         # Atualiza o historico com o novo link postado
         posted_links.append(link_to_post)
         with open("last_posted.json", "w") as file:
             json.dump(posted_links, file, indent=4, ensure_ascii=False)
-        print("Historico atualizado:", posted_links)  # Debug para confirmar que o historico foi salvo
+        print("Historico atualizado:", posted_links)  # Confirma que o historico foi salvo
 
         time.sleep(60)
 
