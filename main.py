@@ -44,7 +44,7 @@ def fetch_links():
         view_links = re.findall(r"OpenPopUpVer\('([^']+)'\)", dados)
         view_links = [f"https://www.rad.cvm.gov.br/ENET/{link}" for link in view_links]
     
-    # Carregar links antigos
+    # Carrega links antigos
     try:
         with open("view_links.json", "r") as file:
             old_links = json.load(file)
@@ -76,28 +76,31 @@ def post_tweets():
     with open("view_links.json", "r") as file:
         links = json.load(file)
 
-    # carrega indice do ultimo link que foi postado
+    # Carrega historico de links ja postados
     try:
         with open("last_posted.json", "r") as file:
-            last_posted = json.load(file)["last_index"]
+            posted_links = json.load(file)
     except FileNotFoundError:
-        last_posted = -1  # começa com o primeiro link se não tiver ainda
+        posted_links = []
 
-    # verifica se há novos links após o último postado
-    if last_posted >= len(links) - 1:
-        print("Não há novos links para serem postados.")
+    # Filtra apenas os links que ainda nao foram postados
+    new_links_to_post = [link for link in links if link not in posted_links]
+
+    # Se nao houver novos links para postar
+    if not new_links_to_post:
+        print("Nao ha novos links para serem postados.")
         return
 
-    # posta apenas os links novos
-    for i in range(last_posted + 1, len(links)):
-        link_to_post = links[i]
+    # Posta apenas os links novos
+    for link_to_post in new_links_to_post:
         client.create_tweet(text=f"Link do documento: {link_to_post}")
         print(f"Tweet postado: {link_to_post}")
 
-        # atualiza índice do último link postado
+        # Atualiza o historico com o novo link postado
+        posted_links.append(link_to_post)
         with open("last_posted.json", "w") as file:
-            json.dump({"last_index": i}, file)
-        
+            json.dump(posted_links, file, indent=4, ensure_ascii=False)
+
         time.sleep(60)
 
 fetch_links()
