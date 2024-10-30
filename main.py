@@ -53,9 +53,9 @@ def fetch_links():
 
     # Adicionar apenas novos links e atualizar o arquivo view_links.json
     new_links = [link for link in view_links if link not in old_links]
-    if new_links:
-        view_links = old_links + new_links  # Atualiza view_links com todos os links
-        with open("view_links.json", "w") as outfile:
+    if new_links: # verificar se nao esta vazio
+        view_links = old_links + new_links  # Atualiza view_links com todos os links ja encontrados
+        with open("view_links.json", "w") as outfile: # abrimos view_links.json e gravamos view_links dentro dele usando json.dump
             json.dump(view_links, outfile, indent=4, ensure_ascii=False)
         print(f"{len(new_links)} novos links adicionados.")
     else:
@@ -81,17 +81,13 @@ def post_tweets(new_links):
         posted_links = []
         print("Arquivo last_posted.json nao encontrado; inicializando como lista vazia.")
 
-    # Filtra apenas os links que ainda nao foram postados
-    links_to_post = [link for link in new_links if link not in posted_links]
-    print("Links novos a serem postados:", links_to_post)
-
     # Se nao houver novos links para postar, termina a funcao sem erro
-    if not links_to_post:
+    if not new_links:
         print("Nao ha novos links para serem postados.")
         return
 
     # Posta apenas os links novos
-    for link_to_post in links_to_post:
+    for link_to_post in new_links:
         print(f"Postando tweet: {link_to_post}")
         try:
             client.create_tweet(text=f"Link do documento: {link_to_post}")
