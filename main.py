@@ -44,7 +44,7 @@ def fetch_links():
         view_links = re.findall(r"OpenPopUpVer\('([^']+)'\)", dados)
         view_links = [f"https://www.rad.cvm.gov.br/ENET/{link}" for link in view_links]
     
-    # Carrega links antigos
+    # Carregar links antigos
     try:
         with open("view_links.json", "r") as file:
             old_links = json.load(file)
@@ -76,7 +76,7 @@ def post_tweets():
     with open("view_links.json", "r") as file:
         links = json.load(file)
 
-    # Carrega historico de links ja postados
+    # Carrega historico completo de links ja postados
     try:
         with open("last_posted.json", "r") as file:
             posted_links = json.load(file)
