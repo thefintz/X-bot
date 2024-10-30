@@ -18,12 +18,14 @@ jobs:
         with:
           python-version: '3.x'
 
-      # Salva o cache do arquivo last_posted.json
-      - name: Cache last_posted.json
+      # Restaura o cache do arquivo last_posted.json
+      - name: Restore last_posted.json cache
         uses: actions/cache@v3
         with:
           path: last_posted.json
-          key: last-posted-cache-${{ github.run_id }}
+          key: last-posted-cache
+          restore-keys: |
+            last-posted-cache
 
       - name: Install dependencies
         run: |
@@ -40,8 +42,8 @@ jobs:
         run: |
           python main.py
 
-      # Salva o cache do arquivo last_posted.json
-      - name: Cache last_posted.json
+      # Atualiza o cache do arquivo last_posted.json para a próxima execução
+      - name: Update last_posted.json cache
         uses: actions/cache@v3
         with:
           path: last_posted.json
