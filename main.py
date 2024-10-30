@@ -76,7 +76,9 @@ def post_tweets():
     with open("view_links.json", "r") as file:
         links = json.load(file)
 
+    # Se nao houver links no arquivo, termina a funcao sem erro
     if not links:
+        print("Nenhum link disponivel para postagem.")
         return
 
     # Carrega historico completo de links ja postados
@@ -89,7 +91,7 @@ def post_tweets():
     # Filtra apenas os links que ainda nao foram postados
     new_links_to_post = [link for link in links if link not in posted_links]
 
-    # Se nao houver novos links para postar
+    # Se nao houver novos links para postar, termina a funcao sem erro
     if not new_links_to_post:
         print("Nao ha novos links para serem postados.")
         return
