@@ -35,6 +35,10 @@ jobs:
         run: |
           python main.py
 
+      # Verifica o conteúdo do last_posted.json após a execução do script
+      - name: Check last_posted.json content
+        run: cat last_posted.json
+
       # Commit e push do arquivo last_posted.json atualizado no repositório
       - name: Commit last_posted.json
         run: |
