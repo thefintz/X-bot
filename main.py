@@ -102,7 +102,7 @@ def post_tweets(new_links):
             json.dump(posted_links, file, indent=4, ensure_ascii=False)
         print("Historico atualizado:", posted_links)
 
-        time.sleep(60)
+        # time.sleep(60)
 
 # Executa as funcoes
 new_links = fetch_links()
