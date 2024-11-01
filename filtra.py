@@ -34,19 +34,21 @@ def fetch_links():
 
     response = requests.post(url, headers=headers, json=data)
     
-    with open("response.json", "w") as outfile:
+    with open("response_download.json", "w") as outfile:
         json.dump(response.json(), outfile, ensure_ascii=False, indent=4)
     
-    # pega os links do arquivo view_links.json
-    with open("response.json", "r") as file:
+    # pega os links de download do arquivo view_links.json
+    with open("response_download.json", "r") as file:
         data = json.load(file)
-        dados = data["d"]["dados"]
-        view_links = re.findall(r"OpenPopUpVer\('([^']+)'\)", dados)
-        view_links = [f"https://www.rad.cvm.gov.br/ENET/{link}" for link in view_links]
-    
+        dados = data["d"]["dados"] # regex: localizamos a funcao opendownloaddocumentos e os 3 parametros p montar a url(numSequencia, numVersao, numProtocolo)
+        view_links = re.findall(r"OpenDownloadDocumentos\('(\d+)',\s*'(\d+)',\s*'(\d+)',\s*'IPE'\)", dados)
+        view_links = [
+            f"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia={match[0]}&numVersao={match[1]}&numProtocolo={match[2]}&descTipo=IPE&CodigoInstituicao=1"
+            for match in view_links]
+
     # Carregar links antigos
     try:
-        with open("last_posted.json", "r") as file:
+        with open("last_posted_download.json", "r") as file:
             last_posted = json.load(file)
     except FileNotFoundError:
         last_posted = []
@@ -55,9 +57,9 @@ def fetch_links():
     new_links = [link for link in view_links if link not in last_posted]
     if new_links: # verificar se nao esta vazio
         view_links = last_posted + new_links  # Atualiza view_links com todos os links ja encontrados
-        with open("view_links.json", "w") as outfile: # abrimos view_links.json e gravamos view_links dentro dele usando json.dump
+        with open("view_links_download.json", "w") as outfile: # abrimos view_links.json e gravamos view_links dentro dele usando json.dump
             json.dump(view_links, outfile, indent=4, ensure_ascii=False)
-        protocolo_ids = [f"id: {re.search(r'NumeroProtocoloEntrega=(\d+)', link).group(1)}" for link in new_links]
+        protocolo_ids = [f"id: {match.group(1)}" for link in new_links if (match := re.search(r'NumeroProtocoloEntrega=(\d+)', link))]
         print(f"{len(new_links)} novo(s) link(s)encontrado(s) e adicionado(s): {', '.join(protocolo_ids)}")
         print("\n")
     else:
@@ -76,7 +78,7 @@ def post_tweets(new_links):
 
     # Carrega historico completo de links ja postados
     try:
-        with open("last_posted.json", "r") as file:
+        with open("last_posted_download.json", "r") as file:
             posted_links = json.load(file)
     except FileNotFoundError:
         posted_links = []
@@ -98,13 +100,13 @@ def post_tweets(new_links):
         # Atualiza o historico com o novo link postado
         tamanho_antes = len(posted_links)
         posted_links.append(link_to_post)
-        with open("last_posted.json", "w") as file:
+        with open("last_posted_download.json", "w") as file:
             json.dump(posted_links, file, indent=4, ensure_ascii=False)
         print(f"Quantidade de links postados ao total: antes = {tamanho_antes}, agora = {len(posted_links)}")
         print("\n")
 
 
-        time.sleep(60)
+        time.sleep(3)
 
 new_links = fetch_links()
 post_tweets(new_links)
