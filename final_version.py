@@ -83,6 +83,7 @@ class get_openai_response(BaseModel):
     empresa: str
     proventos: bool
     valor_por_ticker: float
+    data_com: str
 
 def verificar_conteudo(link_download):
     print(f"processando conteudo do link: {link_download}")
@@ -95,7 +96,7 @@ def verificar_conteudo(link_download):
     conteudo = ""
     with fitz.open("temp.pdf") as pdf:
         for page in pdf:
-            conteudo += page.get_text()  # Extrai o texto de cada página do PDF
+            conteudo += page.get_text()
     
     os.remove("temp.pdf")
     
@@ -108,9 +109,9 @@ def verificar_conteudo(link_download):
         messages=[
             {"role": "system", "content": (
                 "Você é um especialista que analisa documentos financeiros de empresas. "
-                "Retorne True caso o trecho analisado trate pagamento de proventos, bonificações, dividendos, juros sobre capital próprio e retorne False caso contrário."
+                "Retorne True se o trecho analisado se referir a pagamento de proventos, bonificações, dividendos ou juros sobre capital próprio; caso contrário, retorne False."
                 "Ou seja, se em qualquer momento o documento falar sobre pagamento de algum tipo de provento ou algo do tipo juros sobre capital próprio, dividendos, proventos, pagamento por ação, classifique esse documento como 'Sim' para de proventos e retorne True, caso contrário, como 'Não' e False."
-                "Se o documento tratar de proventos, extraia também o valor pago por ação como 'valor_por_ticker'. "
+                "Se o documento tratar de proventos, extraia também o valor pago por ação e a dataCom."
                 "Por exemplo, se o documento menciona algo como 'R$ 0,50 por ação', você deve retornar 0.50 como valor.")},
             {"role": "user", "content": f"Este trecho fala sobre proventos? {parte}."}
         ],
@@ -122,7 +123,8 @@ def verificar_conteudo(link_download):
     if openai_response.proventos:
         return {"link": link_download,
                 "empresa": openai_response.empresa,
-                "valor_por_ticker": openai_response.valor_por_ticker}
+                "valor_por_ticker": openai_response.valor_por_ticker,
+                "data_com": openai_response.data_com}
         print(openai_response)
     return None
 
@@ -145,7 +147,8 @@ def post_tweets(provento_links):
         link_to_post = info["link"]
         empresa = info.get("empresa", "Empresa não identificada")
         valor_por_ticker = info.get("valor_por_ticker", "valor não informado")
-        tweet_content = f"Boas notícias! A empresa {empresa} anunciou novos proventos de R$ {valor_por_ticker} por ação. Confira o documento: {link_to_post}"
+        data_com = info.get("data_com", "data não informada")
+        tweet_content = f"Boas notícias! A empresa {empresa} anunciou novos proventos no valor de R$ {valor_por_ticker} por ação com dataCom {data_com}. Confira o documento: {link_to_post}"
         try:
             # client.create_tweet(text=tweet_content)
             print(f"Tweet postado: {tweet_content}")
