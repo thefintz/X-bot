@@ -108,8 +108,8 @@ def verificar_conteudo(link_download):
         messages=[
             {"role": "system", "content": (
                 "Você é um especialista que analisa documentos financeiros de empresas. "
-                "Retorne True caso o trecho analisado trate de proventos, bonificações, dividendos, juros sobre capital próprio e retorne False caso contrário."
-                "Ou seja, se em qualquer momento o documento falar sobre algo do tipo juros sobre capital próprio, dividendos, proventos, pagamento por ação, classifique esse documento como 'Sim' para de proventos e retorne True, caso contrário, como 'Não' e False."
+                "Retorne True caso o trecho analisado trate pagamento de proventos, bonificações, dividendos, juros sobre capital próprio e retorne False caso contrário."
+                "Ou seja, se em qualquer momento o documento falar sobre pagamento de algum tipo de provento ou algo do tipo juros sobre capital próprio, dividendos, proventos, pagamento por ação, classifique esse documento como 'Sim' para de proventos e retorne True, caso contrário, como 'Não' e False."
                 "Se o documento tratar de proventos, extraia também o valor pago por ação como 'valor_por_ticker'. "
                 "Por exemplo, se o documento menciona algo como 'R$ 0,50 por ação', você deve retornar 0.50 como valor.")},
             {"role": "user", "content": f"Este trecho fala sobre proventos? {parte}."}
@@ -160,11 +160,6 @@ def post_tweets(provento_links):
         print(f"Quantidade de links postados ao total: {len(posted_links)}")
         time.sleep(3)
 
-
-new_links = fetch_links()
-
-provento_links = [verificar_conteudo(link) for link in new_links]
-provento_links = [info for info in provento_links if info]  # Remove entradas None
 
 new_links = fetch_links()
 
