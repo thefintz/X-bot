@@ -80,10 +80,15 @@ def fetch_links():
     return new_links
 
 class get_openai_response(BaseModel):
-    empresa: str
     proventos: bool
-    valor_por_ticker: float
-    data_com: str
+    empresa: str
+    ticker: list[str]
+    # valor_por_ticker: float
+    # valor_por_acao: float   -> mais comum nos documentos
+    valor: list[float]
+    tipo_provento: list[str]
+    data_com: list[str]
+    data_pagamento: list[str]
 
 def verificar_conteudo(link_download):
     print(f"processando conteudo do link: {link_download}")
@@ -121,13 +126,13 @@ def verificar_conteudo(link_download):
     openai_response = completion.choices[0].message.parsed
     print(openai_response)
 
-
     if openai_response.proventos:
         return {"link": link_download,
                 "empresa": openai_response.empresa,
-                "valor_por_ticker": openai_response.valor_por_ticker,
-                "data_com": openai_response.data_com}
-        print(openai_response)
+                "valor": openai_response.valor,
+                "tipo_provento": openai_response.tipo_provento,
+                "data_com": openai_response.data_com,
+                "data_pagamento": openai_response.data_pagamento}
     return None
 
 def post_tweets(provento_links):
@@ -148,9 +153,9 @@ def post_tweets(provento_links):
     for info in provento_links:
         link_to_post = info["link"]
         empresa = info.get("empresa", "Empresa não identificada")
-        valor_por_ticker = info.get("valor_por_ticker", "valor não informado")
+        valor = info.get("valor", "valor não informado")
         data_com = info.get("data_com", "data não informada")
-        tweet_content = f"Boas notícias! A empresa {empresa} anunciou novos proventos no valor de R$ {valor_por_ticker} por ação com dataCom {data_com}. Confira o documento: {link_to_post}"
+        tweet_content = f"Boas notícias! A empresa {empresa} anunciou novos proventos no valor de R$ {valor} por ação com dataCom {data_com}. Confira o documento: {link_to_post}"
         try:
             # client.create_tweet(text=tweet_content)
             print(f"Tweet postado: {tweet_content}")
