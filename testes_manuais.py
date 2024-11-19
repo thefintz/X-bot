@@ -10,7 +10,6 @@ import re
 import tweepy
 import time
 
-client = OpenAI()
 api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
 
@@ -86,11 +85,11 @@ class Provento(BaseModel):
     valor: float
     tipo_provento: str
     tipo_acao: str
-    data_com: str # testar data_com tipo date. prompt retorne data formato dd/mm/yyyy
+    data_com: str
     data_ex: str
     data_pagamento: str
 
-class get_openai_response(BaseModel):
+class OpenAiResponse(BaseModel):
     is_provento: bool
     empresa: str
     proventos: list[Provento]
@@ -143,7 +142,7 @@ def verificar_conteudo(link_download):
             "content": f"Este trecho menciona pagamento atual de proventos? {parte}."
             }
         ],
-        response_format=get_openai_response,
+        response_format=OpenAiResponse,
     )
 
     openai_response = completion.choices[0].message.parsed
@@ -215,40 +214,40 @@ def post_tweets(provento_links):
         # time.sleep(3)
 
 
-# new_links = fetch_links()
+new_links = fetch_links()
 
-# provento_links = []
-# for link in new_links:
-#     resultado = verificar_conteudo(link)
-#     if resultado:
-#         provento_links.append(resultado)
+provento_links = []
+for link in new_links:
+    resultado = verificar_conteudo(link)
+    if resultado:
+        provento_links.append(resultado)
 
-# if provento_links:
-#     post_tweets(provento_links)
-# elif new_links:
-#     quantidade_nao_proventos = len(new_links) - len(provento_links)
-#     print(f"{quantidade_nao_proventos} novo(s) link(s) encontrado(s), mas nenhum deles trata de proventos.")
+if provento_links:
+    post_tweets(provento_links)
+elif new_links:
+    quantidade_nao_proventos = len(new_links) - len(provento_links)
+    print(f"{quantidade_nao_proventos} novo(s) link(s) encontrado(s), mas nenhum deles trata de proventos.")
 
 
-# teste com 20 docs do sheets
-link_teste = "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=824728&numVersao=1&numProtocolo=1300002&descTipo=IPE&CodigoInstituicao=1"
-resultado_teste = verificar_conteudo(link_teste)
+# # teste com 20 docs do sheets
+# link_teste = "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=822581&numVersao=1&numProtocolo=1297855&descTipo=IPE&CodigoInstituicao=1"
+# resultado_teste = verificar_conteudo(link_teste)
 
-if resultado_teste:
-    empresa = resultado_teste["empresa"]
-    proventos = resultado_teste["proventos"]
-    for provento in proventos:
-        tweet_content = (
-            f"Empresa: {empresa}\n"
-            f"Ticker: {provento.ticker}\n"
-            f"Tipo de Provento: {provento.tipo_provento}\n"
-            f"Tipo de acao: {provento.tipo_acao}\n"
-            f"Valor por Ação: R$ {provento.valor}\n"
-            f"DataCom: {provento.data_com}\n"
-            f"DataEx: {provento.data_ex}\n"
-            f"Data de Pagamento: {provento.data_pagamento}\n"
-            f"Veja o documento: {link_teste}"
-        )
-        print(tweet_content)
-else:
-    print("Nenhum conteúdo relacionado a proventos foi encontrado.")
+# if resultado_teste:
+#     empresa = resultado_teste["empresa"]
+#     proventos = resultado_teste["proventos"]
+#     for provento in proventos:
+#         tweet_content = (
+#             f"Empresa: {empresa}\n"
+#             f"Ticker: {provento.ticker}\n"
+#             f"Tipo de Provento: {provento.tipo_provento}\n"
+#             f"Tipo de acao: {provento.tipo_acao}\n"
+#             f"Valor por Ação: R$ {provento.valor}\n"
+#             f"DataCom: {provento.data_com}\n"
+#             f"DataEx: {provento.data_ex}\n"
+#             f"Data de Pagamento: {provento.data_pagamento}\n"
+#             f"Veja o documento: {link_teste}"
+#         )
+#         print(tweet_content)
+# else:
+#     print("Nenhum conteúdo relacionado a proventos foi encontrado.")
