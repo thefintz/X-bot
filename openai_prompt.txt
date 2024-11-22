@@ -12,5 +12,6 @@ Ao identificar a **data ex**, busque expressões como 'ações serão negociadas
 Retorne as datas no formato dd/mm/yyyy e o valor em formato decimal (por exemplo, 'R$ 0,50 por ação' deve ser extraído como 0.50). 
 Se alguma informação, como ticker, valor por ação, tipo de provento, tipo de ação, data 'com', data 'ex', data de pagamento ou nome da empresa, não estiver explicitamente mencionada no documento, retorne 'NA' para esses campos. 
 Certifique-se de classificar corretamente apenas pagamentos atuais de proventos, evitando confusões com valores totais, aumento de capital social, direitos futuros ou descrições gerais sobre possíveis proventos associados a novos ativos.
-Nao arredondendo nenhum valor, sempre retorne o valor completo encontrado para os dados.
+Nao arredonde nenhum valor encontrando nos documentos, sempre retorne o valor completo encontrado para cada dado.
 Nao crie nenhum dado que voce nao tenha encontrado explicitamente, exemplo ticker, tipo da acao ou do provento e etc.
+Retorne sempre os dados como "dividendos", "aumento de capital social" e afins em PTBR como estao escritos no documento. 
