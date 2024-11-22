@@ -21,7 +21,6 @@ CONSUMER_SECRET = os.getenv("API_SECRET")
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 ACCESS_TOKEN_SECRET = os.getenv("ACCESS_TOKEN_SECRET")
 
-# Constantes
 CVM_URL = "https://www.rad.cvm.gov.br/ENET/frmConsultaExternaCVM.aspx/ListarDocumentos"
 HEADERS = {
     "Content-Type": "application/json; charset=utf-8",
@@ -47,7 +46,6 @@ PAYLOAD = {
     "versaoCaptcha": ""
 }
 
-# Funções auxiliares para JSON
 def load_json(file_path):
     with open(file_path, "r") as file:
         return json.load(file)
@@ -231,7 +229,6 @@ lista_de_links = ["https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tel
 
 resultados = []
 
-# Iterar sobre os links e processar cada um
 for link_teste in lista_de_links:
     print(f"Processando link: {link_teste}")
     resultado_teste = analisar_documentos_openai(link_teste)
@@ -271,7 +268,6 @@ for link_teste in lista_de_links:
     else:
         print(f"Nenhum conteúdo foi retornado para o link: {link_teste}")
 
-# Ordenar e salvar o DataFrame
 if resultados:
     df = pd.DataFrame(resultados, columns=[
         "EMPRESA", "TICKER", "IS_PROVENTO", "DATA_COM", "DATA_EX", 
