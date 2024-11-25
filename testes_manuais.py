@@ -73,8 +73,8 @@ def fetch_links():
         for match in request_links
     ]
 
-    view_links = load_json("view_links_download.json", [])
-    last_posted = load_json("last_posted_download.json", [])
+    view_links = load_json("view_links_download.json")
+    last_posted = load_json("last_posted_download.json")
 
     new_links = [link for link in request_links if link not in view_links and link not in last_posted]
 
@@ -147,7 +147,7 @@ def post_tweets(provento_links):
         access_token_secret=ACCESS_TOKEN_SECRET,
     )
 
-    posted_links = load_json("last_posted_download.json", [])
+    posted_links = load_json("last_posted_download.json")
 
     for info in provento_links:
         link_to_post = info["link"]
@@ -158,124 +158,124 @@ def post_tweets(provento_links):
             print(f"O link {link_to_post} já foi postado anteriormente.")
             continue
 
-        for provento in proventos:
+        if proventos:
+            proventos_text = "\n".join(
+                f"- {provento.tipo_provento} de R${provento.valor}/ação "
+                f"(Data Com: {provento.data_com})"
+                for provento in proventos
+            )
+
             tweet_content = (
-                f"Empresa: {empresa}\n"
-                f"Ticker: {provento.ticker}\n"
-                f"Tipo de Provento: {provento.tipo_provento}\n"
-                f"Tipo de ação: {provento.tipo_acao}\n"
-                f"Valor por Ação: R$ {provento.valor}\n"
-                f"DataCom: {provento.data_com}\n"
-                f"DataEx: {provento.data_ex}\n"
-                f"Data de Pagamento: {provento.data_pagamento}\n"
-                f"Veja o documento: {link_to_post}"
+                f"🪙 {empresa} anunciou proventos:\n"
+                f"{proventos_text}\n"
+                f"🔗 Saiba mais: {link_to_post}"
             )
 
             try:
-                # client.create_tweet(text=tweet_content)  # linha q faz o tweet > talvez criar uma funcao q posta e chamar ela aq
+                client.create_tweet(text=tweet_content)
                 print(f"Tweet postado: {tweet_content}")
             except tweepy.errors.Forbidden:
                 print(f"Erro ou tweet duplicado ignorado: {tweet_content}")
                 continue
 
-        posted_links.append(link_to_post)
-        save_json("last_posted_download.json", posted_links)
-        print(f"Quantidade de links postados ao total: {len(posted_links)}\n")
-        time.sleep(3)
+            posted_links.append(link_to_post)
+            save_json("last_posted_download.json", posted_links)
+            print(f"Quantidade de links postados ao total: {len(posted_links)}\n")
+            time.sleep(10)
+
 
 # Fluxo Principal
-# new_links = fetch_links()
+new_links = fetch_links()
 
-# provento_links = []
-# for link in new_links:
-#     print(F"Processando link: {link}")
-#     resultado = analisar_documentos_openai(link)
-#     if resultado:
-#         provento_links.append(resultado)
+provento_links = []
+for link in new_links:
+    print(F"Processando link: {link}")
+    resultado = analisar_documentos_openai(link)
+    if resultado:
+        provento_links.append(resultado)
 
-# if provento_links:
-#     post_tweets(provento_links)
-# elif new_links:
-#     quantidade_nao_proventos = len(new_links) - len(provento_links)
-#     print(f"{quantidade_nao_proventos} novo(s) link(s) encontrado(s), mas nenhum deles trata de proventos.")
+if provento_links:
+    post_tweets(provento_links)
+elif new_links:
+    quantidade_nao_proventos = len(new_links) - len(provento_links)
+    print(f"{quantidade_nao_proventos} novo(s) link(s) encontrado(s), mas nenhum deles trata de proventos.")
 
 
 # ================================
 # teste com 20 documentos do sheets
-import pandas as pd
 
-lista_de_links = ["https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=822534&numVersao=1&numProtocolo=1297808&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=822581&numVersao=1&numProtocolo=1297855&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823224&numVersao=1&numProtocolo=1298498&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823244&numVersao=1&numProtocolo=1298518&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823248&numVersao=1&numProtocolo=1298522&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823251&numVersao=1&numProtocolo=1298525&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823419&numVersao=1&numProtocolo=1298693&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823824&numVersao=1&numProtocolo=1299098&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823876&numVersao=1&numProtocolo=1299150&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823935&numVersao=1&numProtocolo=1299209&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823937&numVersao=1&numProtocolo=1299211&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823955&numVersao=1&numProtocolo=1299229&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823961&numVersao=1&numProtocolo=1299235&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=824304&numVersao=1&numProtocolo=1299578&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=824963&numVersao=1&numProtocolo=1300237&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=825031&numVersao=1&numProtocolo=1300305&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=825097&numVersao=1&numProtocolo=1300371&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=825061&numVersao=1&numProtocolo=1300335&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=825037&numVersao=1&numProtocolo=1300311&descTipo=IPE&CodigoInstituicao=1",
-"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=824728&numVersao=1&numProtocolo=1300002&descTipo=IPE&CodigoInstituicao=1",
-]
+# lista_de_links = ["https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=822534&numVersao=1&numProtocolo=1297808&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=822581&numVersao=1&numProtocolo=1297855&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823224&numVersao=1&numProtocolo=1298498&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823244&numVersao=1&numProtocolo=1298518&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823248&numVersao=1&numProtocolo=1298522&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823251&numVersao=1&numProtocolo=1298525&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823419&numVersao=1&numProtocolo=1298693&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823824&numVersao=1&numProtocolo=1299098&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823876&numVersao=1&numProtocolo=1299150&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823935&numVersao=1&numProtocolo=1299209&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823937&numVersao=1&numProtocolo=1299211&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823955&numVersao=1&numProtocolo=1299229&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=823961&numVersao=1&numProtocolo=1299235&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=824304&numVersao=1&numProtocolo=1299578&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=824963&numVersao=1&numProtocolo=1300237&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=825031&numVersao=1&numProtocolo=1300305&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=825097&numVersao=1&numProtocolo=1300371&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=825061&numVersao=1&numProtocolo=1300335&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=825037&numVersao=1&numProtocolo=1300311&descTipo=IPE&CodigoInstituicao=1",
+# "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=824728&numVersao=1&numProtocolo=1300002&descTipo=IPE&CodigoInstituicao=1",
+# ]
 
 
-resultados = []
+# resultados = []
 
-for link_teste in lista_de_links:
-    print(f"Processando link: {link_teste}")
-    resultado_teste = analisar_documentos_openai(link_teste)
+# for link_teste in lista_de_links:
+#     print(f"Processando link: {link_teste}")
+#     resultado_teste = analisar_documentos_openai(link_teste)
 
-    if resultado_teste:
-        empresa = resultado_teste["empresa"]
-        proventos = resultado_teste.get("proventos", []) # extrai lista de proventos, se n tiver eh uma lista vazia
-        is_provento = resultado_teste["is_provento"]
+#     if resultado_teste:
+#         empresa = resultado_teste["empresa"]
+#         proventos = resultado_teste.get("proventos", []) # extrai lista de proventos, se n tiver eh uma lista vazia
+#         is_provento = resultado_teste["is_provento"]
         
-        if proventos:
-            for provento in proventos:
-                resultados.append({
-                    # "DOCUMENTO": link_teste,
-                    "EMPRESA": empresa,
-                    "TICKER": provento.ticker,
-                    "IS_PROVENTO": is_provento,
-                    "DATA_COM": provento.data_com,
-                    "DATA_EX": provento.data_ex,
-                    "TIPO ACAO": provento.tipo_acao,
-                    "TIPO PROVENTO": provento.tipo_provento,
-                    "VALOR": provento.valor,
-                    "DATA_PAGAMENTO": provento.data_pagamento,
-                })
-        else:  # Documento sem proventos
-            resultados.append({
-                # "DOCUMENTO": link_teste,
-                "EMPRESA": empresa,
-                "TICKER": "N/A",
-                "IS_PROVENTO": is_provento,
-                "DATA_COM": "N/A",
-                "DATA_EX": "N/A",
-                "TIPO ACAO": "N/A",
-                "TIPO PROVENTO": "N/A",
-                "VALOR": "N/A",
-                "DATA_PAGAMENTO": "N/A",
-            })
-    else:
-        print(f"Nenhum conteúdo foi retornado para o link: {link_teste}")
+#         if proventos:
+#             for provento in proventos:
+#                 resultados.append({
+#                     # "DOCUMENTO": link_teste,
+#                     "EMPRESA": empresa,
+#                     "TICKER": provento.ticker,
+#                     "IS_PROVENTO": is_provento,
+#                     "DATA_COM": provento.data_com,
+#                     "DATA_EX": provento.data_ex,
+#                     "TIPO ACAO": provento.tipo_acao,
+#                     "TIPO PROVENTO": provento.tipo_provento,
+#                     "VALOR": provento.valor,
+#                     "DATA_PAGAMENTO": provento.data_pagamento,
+#                 })
+#         else:  # Documento sem proventos
+#             resultados.append({
+#                 # "DOCUMENTO": link_teste,
+#                 "EMPRESA": empresa,
+#                 "TICKER": "N/A",
+#                 "IS_PROVENTO": is_provento,
+#                 "DATA_COM": "N/A",
+#                 "DATA_EX": "N/A",
+#                 "TIPO ACAO": "N/A",
+#                 "TIPO PROVENTO": "N/A",
+#                 "VALOR": "N/A",
+#                 "DATA_PAGAMENTO": "N/A",
+#             })
+#     else:
+#         print(f"Nenhum conteúdo foi retornado para o link: {link_teste}")
 
-if resultados:
-    df = pd.DataFrame(resultados, columns=[
-        "EMPRESA", "TICKER", "IS_PROVENTO", "DATA_COM", "DATA_EX", 
-        "TIPO ACAO", "TIPO PROVENTO", "VALOR", "DATA_PAGAMENTO"
-    ])
-    output_file = "resultados_proventos.csv"
-    df.to_csv(output_file, index=False, encoding="utf-8-sig")
-    print(f"Arquivo CSV gerado: {output_file}")
-else:
-    print("Nenhum dado de proventos foi encontrado nos links fornecidos.")
+# if resultados:
+#     df = pd.DataFrame(resultados, columns=[
+#         "EMPRESA", "TICKER", "IS_PROVENTO", "DATA_COM", "DATA_EX", 
+#         "TIPO ACAO", "TIPO PROVENTO", "VALOR", "DATA_PAGAMENTO"
+#     ])
+#     output_file = "resultados_proventos.csv"
+#     df.to_csv(output_file, index=False, encoding="utf-8-sig")
+#     print(f"Arquivo CSV gerado: {output_file}")
+# else:
+#     print("Nenhum dado de proventos foi encontrado nos links fornecidos.")
 
