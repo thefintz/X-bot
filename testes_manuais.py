@@ -160,8 +160,8 @@ def post_tweets(provento_links):
 
         if proventos:
             proventos_text = "\n".join(
-                f"- {provento.tipo_provento} de R${provento.valor}/ação "
-                f"(Data Com: {provento.data_com})"
+                f"- {provento.tipo_provento} de R${provento.valor:.2f}".replace('.', ',')
+                + f" (Data Com: {provento.data_com})"
                 for provento in proventos
             )
 
