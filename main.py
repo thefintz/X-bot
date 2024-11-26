@@ -67,27 +67,42 @@ def fetch_links():
 
     data = response.json()
     dados = data["d"]["dados"]
+
+    # Extração de links de download
     request_links = re.findall(r"OpenDownloadDocumentos\('(\d+)',\s*'(\d+)',\s*'(\d+)',\s*'IPE'\)", dados)
     request_links = [
         f"https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia={match[0]}&numVersao={match[1]}&numProtocolo={match[2]}&descTipo=IPE&CodigoInstituicao=1"
         for match in request_links
     ]
 
-    view_links = load_json("view_links_download.json")
+    # Extração de links de visualização
+    link_visualizacao = re.findall(r"OpenPopUpVer\('([^']+)'\)", dados)
+    link_visualizacao = [f"https://www.rad.cvm.gov.br/ENET/{link}" for link in link_visualizacao]
+
+    # Combina links de download e visualização
+    link_pairs = list(zip(request_links, link_visualizacao))  # Cada par é (link_download, link_visualizacao)
+
+    # Carregar links previamente processados
+    processed_links = load_json("view_links_download.json")
     last_posted = load_json("last_posted_download.json")
 
-    new_links = [link for link in request_links if link not in view_links and link not in last_posted]
+    # Verificar novos links
+    new_links = [
+        pair for pair in link_pairs
+        if pair[0] not in processed_links and pair[1] not in last_posted
+    ]
 
     if new_links:
-        view_links.extend(new_links)
-        save_json("view_links_download.json", view_links)
+        processed_links.extend([pair[0] for pair in new_links])
+        save_json("view_links_download.json", processed_links)
 
-        protocolo_ids = [f"Protocolo: {match.group(1)}" for link in new_links if (match := re.search(r'numProtocolo=(\d+)', link))]
-        print(f"{len(new_links)} novo(s) link(s) encontrado(s): {', '.join(protocolo_ids)}")
+        protocolos = [f"Protocolo: {match.group(1)}" for link, _ in new_links if (match := re.search(r'numProtocolo=(\d+)', link))]
+        print(f"{len(new_links)} novo(s) link(s) encontrado(s): {', '.join(protocolos)}")
     else:
         print("Nenhum link novo ou relevante encontrado.")
 
     return new_links
+
 
 class Provento(BaseModel):
     ticker: str
@@ -150,12 +165,12 @@ def post_tweets(provento_links):
     posted_links = load_json("last_posted_download.json")
 
     for info in provento_links:
-        link_to_post = info["link"]
+        link_visualizacao = info["link_visualizacao"]  # Use o link de visualização para o tweet
         empresa = info["empresa"]
         proventos = info["proventos"]
 
-        if link_to_post in posted_links:
-            print(f"O link {link_to_post} já foi postado anteriormente.")
+        if link_visualizacao in posted_links:
+            print(f"O link {link_visualizacao} já foi postado anteriormente.")
             continue
 
         if proventos:
@@ -166,9 +181,9 @@ def post_tweets(provento_links):
             )
 
             tweet_content = (
-                f"🪙 {empresa} anunciou proventos:\n"
+                f"🤑 {empresa} anunciou proventos:\n"
                 f"{proventos_text}\n"
-                f"🔗 Saiba mais: {link_to_post}"
+                f"🔗 Saiba mais: {link_visualizacao}"
             )
 
             try:
@@ -178,7 +193,7 @@ def post_tweets(provento_links):
                 print(f"Erro ou tweet duplicado ignorado: {tweet_content}")
                 continue
 
-            posted_links.append(link_to_post)
+            posted_links.append(link_download)
             save_json("last_posted_download.json", posted_links)
             print(f"Quantidade de links postados ao total: {len(posted_links)}\n")
             time.sleep(10)
@@ -188,10 +203,11 @@ def post_tweets(provento_links):
 new_links = fetch_links()
 
 provento_links = []
-for link in new_links:
-    print(F"Processando link: {link}")
-    resultado = analisar_documentos_openai(link)
+for link_download, link_visualizacao in new_links:
+    print(f"Processando link de download: {link_download}")
+    resultado = analisar_documentos_openai(link_download)
     if resultado:
+        resultado["link_visualizacao"] = link_visualizacao
         provento_links.append(resultado)
 
 if provento_links:
