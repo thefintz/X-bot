@@ -9,6 +9,7 @@ import json
 import re
 import tweepy
 import time
+from pdf2image import convert_from_path
 
 # Configuração do cliente OpenAI
 api_key = os.getenv("OPENAI_API_KEY")
@@ -46,6 +47,20 @@ PAYLOAD = {
     "versaoCaptcha": ""
 }
 
+def salvar_primeira_pagina_pdf(link_download):
+    response = requests.get(link_download)
+    response.raise_for_status()
+
+    with open("temp.pdf", "wb") as f:
+        f.write(response.content)
+
+    # Converte a primeira pag para imagem
+    images = convert_from_path("temp.pdf", first_page=1, last_page=1)
+    image_path = "temp_page1.png"
+    images[0].save(image_path, "PNG")
+    os.remove("temp.pdf")
+    return image_path
+
 def load_json(file_path):
     with open(file_path, "r") as file:
         return json.load(file)
@@ -75,18 +90,16 @@ def fetch_links():
         for match in request_links
     ]
 
-    # Extração de links de visualização
+    # extrair  links de visualizacao p postar dps
     link_visualizacao = re.findall(r"OpenPopUpVer\('([^']+)'\)", dados)
     link_visualizacao = [f"https://www.rad.cvm.gov.br/ENET/{link}" for link in link_visualizacao]
 
-    # Combina links de download e visualização
+    # Combina links de download e visualizacao
     link_pairs = list(zip(request_links, link_visualizacao))  # Cada par é (link_download, link_visualizacao)
 
-    # Carregar links previamente processados
     processed_links = load_json("view_links_download.json")
     last_posted = load_json("last_posted_download.json")
 
-    # Verificar novos links
     new_links = [
         pair for pair in link_pairs
         if pair[0] not in processed_links and pair[1] not in last_posted
@@ -102,7 +115,6 @@ def fetch_links():
         print("Nenhum link novo ou relevante encontrado.")
 
     return new_links
-
 
 class Provento(BaseModel):
     ticker: str
@@ -162,10 +174,20 @@ def post_tweets(provento_links):
         access_token_secret=ACCESS_TOKEN_SECRET,
     )
 
+    # config do cliente para upload de midia
+    auth = tweepy.OAuth1UserHandler(
+        consumer_key=CONSUMER_KEY,
+        consumer_secret=CONSUMER_SECRET,
+        access_token=ACCESS_TOKEN,
+        access_token_secret=ACCESS_TOKEN_SECRET
+    )
+    api = tweepy.API(auth)
+
     posted_links = load_json("last_posted_download.json")
 
     for info in provento_links:
-        link_visualizacao = info["link_visualizacao"]  # Use o link de visualização para o tweet
+        link_visualizacao = info["link_visualizacao"]
+        link_download = info["link"]
         empresa = info["empresa"]
         proventos = info["proventos"]
 
@@ -187,8 +209,18 @@ def post_tweets(provento_links):
             )
 
             try:
-                client.create_tweet(text=tweet_content)
-                print(f"Tweet postado: {tweet_content}")
+                image_path = salvar_primeira_pagina_pdf(link_download)
+
+                # Upload da imagem usando `api` v1.1 pq v2 nao tem nada na docs
+                media = api.media_upload(image_path)
+
+                client.create_tweet( # postagem do tweet
+                    text=tweet_content,
+                    media_ids=[media.media_id]
+                )
+
+                os.remove(image_path)
+                print(f"Tweet postado com imagem: {tweet_content}")
             except tweepy.errors.Forbidden:
                 print(f"Erro ou tweet duplicado ignorado: {tweet_content}")
                 continue
@@ -196,7 +228,7 @@ def post_tweets(provento_links):
             posted_links.append(link_download)
             save_json("last_posted_download.json", posted_links)
             print(f"Quantidade de links postados ao total: {len(posted_links)}\n")
-            time.sleep(10)
+            time.sleep(60)
 
 
 # Fluxo Principal
