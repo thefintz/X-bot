@@ -39,15 +39,15 @@ jobs:
         run: |
           python main.py
 
-      # Verifica o conteúdo do last_posted.json após execução
-      - name: Check last_posted.json content
-        run: cat last_posted.json
+      # Verifica o conteúdo do last_posted_download.json após execução
+      - name: Check last_posted_download.json content
+        run: cat last_posted_download.json
 
-      # Commit e push do arquivo last_posted.json atualizado
-      - name: Commit last_posted.json
+      # Commit e push do arquivo last_posted_download.json atualizado
+      - name: Commit last_posted_download.json
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git add last_posted.json
-          git commit -m "Atualiza last_posted.json com novos links postados" || echo "Nenhuma alteração para commit"
+          git add last_posted_download.json
+          git commit -m "Atualiza last_posted_download.json com novos links postados" || echo "Nenhuma alteração para commit"
           git push
