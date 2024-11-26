@@ -2,7 +2,7 @@ name: Post Every Hour
 
 on:
   schedule:
-    - cron: "0 * * * *"  # Executa a cada 1 hora no início da hora
+    - cron: "0 * * * *"  # Executa a cada hora
   workflow_dispatch:        # Permite execução manual
 
 jobs:
@@ -15,6 +15,9 @@ jobs:
         with:
           persist-credentials: true  # Permite commit com credenciais do GitHub Actions
 
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -25,20 +28,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Set environment variables
+      - name: Run tweet script
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
           API_KEY: ${{ secrets.API_KEY }}
           API_SECRET: ${{ secrets.API_SECRET }}
+          BEARER_TOKEN: ${{ secrets.BEARER_TOKEN }}
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
-
-      - name: Run tweet script
         run: |
           python main.py
 
-      # Verifica o conteúdo do arquivo last_posted.json após execução
+      # Verifica o conteúdo do last_posted.json após execução
       - name: Check last_posted.json content
         run: cat last_posted.json
 
