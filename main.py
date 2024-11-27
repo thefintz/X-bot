@@ -197,10 +197,12 @@ def post_tweets(provento_links):
 
         if proventos:
             proventos_text = "\n".join(
-                f"- {provento.tipo_provento} de R${provento.valor:.2f}".replace('.', ',')
+                f"- {provento.tipo_provento} ({provento.tipo_acao}) de R${provento.valor:.2f}".replace('.', ',')
                 + f" (Data Com: {provento.data_com})"
                 for provento in proventos
             )
+
+            proventos_text = proventos_text.replace("juros sobre capital próprio", "JCP")
 
             tweet_content = (
                 f"🤑 {empresa} anunciou proventos:\n"
@@ -220,9 +222,10 @@ def post_tweets(provento_links):
                 )
 
                 os.remove(image_path)
-                print(f"Tweet postado com imagem: {tweet_content}")
+                print(f"Tweet postado: {tweet_content}")
             except tweepy.errors.Forbidden:
                 print(f"Erro ou tweet duplicado ignorado: {tweet_content}")
+                os.remove(image_path)
                 continue
 
             posted_links.append(link_download)
