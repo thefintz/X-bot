@@ -102,7 +102,7 @@ def fetch_links():
 
     new_links = [
         pair for pair in link_pairs
-        if pair[0] not in processed_links and pair[1] not in last_posted
+        if pair[0] not in processed_links and pair[0] not in last_posted
     ]
 
     if new_links:
@@ -251,6 +251,7 @@ elif new_links:
 
 # ================================
 # teste com 20 documentos do sheets
+# import pandas as pd
 
 # lista_de_links = ["https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=822534&numVersao=1&numProtocolo=1297808&descTipo=IPE&CodigoInstituicao=1",
 # "https://www.rad.cvm.gov.br/ENET/frmDownloadDocumento.aspx?Tela=ext&numSequencia=822581&numVersao=1&numProtocolo=1297855&descTipo=IPE&CodigoInstituicao=1",
