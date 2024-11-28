@@ -174,7 +174,7 @@ def post_tweets(provento_links):
         access_token_secret=ACCESS_TOKEN_SECRET,
     )
 
-    # config do cliente para upload de midia
+    # Config do cliente para upload de mídia
     auth = tweepy.OAuth1UserHandler(
         consumer_key=CONSUMER_KEY,
         consumer_secret=CONSUMER_SECRET,
@@ -196,17 +196,27 @@ def post_tweets(provento_links):
             continue
 
         if proventos:
-            proventos_text = "\n".join(
-                f"- {provento.tipo_provento} ({provento.tipo_acao}) de R${provento.valor:.2f}".replace('.', ',')
-                + f" (Data Com: {provento.data_com})"
-                for provento in proventos
-            )
+            proventos_text = ""
+            for provento in proventos:
+                partes = []
+                if provento.tipo_provento:
+                    partes.append(f"{provento.tipo_provento.capitalize()} ({provento.tipo_acao})")
+                if provento.valor:
+                    partes.append(f"R${provento.valor:.2f}".replace('.', ','))
+                if provento.data_com:
+                    partes.append(f"Data Com: {provento.data_com}")
+                # if provento.data_ex:
+                #     partes.append(f"Data Ex: {provento.data_ex}")
+                # if provento.data_pagamento:
+                #     partes.append(f"Pagamento: {provento.data_pagamento}")
+                if provento.ticker:
+                    partes.insert(0, f"[{provento.ticker}]")
 
-            proventos_text = proventos_text.replace("juros sobre capital próprio", "JCP")
+                proventos_text += "- " + ", ".join(partes) + "\n"
 
             tweet_content = (
                 f"🤑 {empresa} anunciou proventos:\n"
-                f"{proventos_text}\n"
+                f"{proventos_text.strip()}\n"
                 f"🔗 Saiba mais: {link_visualizacao}"
             )
 
@@ -232,6 +242,7 @@ def post_tweets(provento_links):
             save_json("last_posted_download.json", posted_links)
             print(f"Quantidade de links postados ao total: {len(posted_links)}\n")
             time.sleep(60)
+
 
 
 # Fluxo Principal
