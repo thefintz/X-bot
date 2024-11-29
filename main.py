@@ -199,8 +199,10 @@ def post_tweets(provento_links):
             proventos_text = ""
             for provento in proventos:
                 partes = []
+                tipo_provento = provento.tipo_provento.replace("juros sobre capital próprio", "JCP")
+
                 if provento.tipo_provento:
-                    partes.append(f"{provento.tipo_provento.capitalize()} ({provento.tipo_acao})")
+                    partes.append(f"{tipo_provento}({provento.tipo_acao})")
                 if provento.valor:
                     partes.append(f"R${provento.valor:.2f}".replace('.', ','))
                 if provento.data_com:
