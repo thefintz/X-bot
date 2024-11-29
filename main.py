@@ -199,22 +199,22 @@ def post_tweets(provento_links):
             proventos_text = ""
             for provento in proventos:
                 partes = []
-                tipo_provento = provento.tipo_provento.replace("juros sobre capital próprio", "JCP")
+                tipo_provento = provento.tipo_provento.replace("juros sobre capital próprio", "JCP") if provento.tipo_provento and provento.tipo_provento != "NA" else None
 
-                if provento.tipo_provento:
-                    partes.append(f"{tipo_provento}({provento.tipo_acao})")
-                if provento.valor:
+                if tipo_provento:
+                    partes.append(f"{tipo_provento} ({provento.tipo_acao or ''})".strip())
+
+                if provento.valor and provento.valor != "NA":
                     partes.append(f"R${provento.valor:.2f}".replace('.', ','))
-                if provento.data_com:
+
+                if provento.data_com and provento.data_com != "NA":
                     partes.append(f"Data Com: {provento.data_com}")
-                # if provento.data_ex:
-                #     partes.append(f"Data Ex: {provento.data_ex}")
-                # if provento.data_pagamento:
-                #     partes.append(f"Pagamento: {provento.data_pagamento}")
-                if provento.ticker:
+
+                if provento.ticker and provento.ticker != "NA":
                     partes.insert(0, f"[{provento.ticker}]")
 
                 proventos_text += "- " + ", ".join(partes) + "\n"
+
 
             tweet_content = (
                 f"🤑 {empresa} anunciou proventos:\n"
