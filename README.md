@@ -12,6 +12,6 @@ Esse repositorio esta configurado para rodar com GitHub Actions a cada hora, ent
 5. Favor nao dar commit em nada na main para que os arquivos json locais e do repo nao fiquem diferentes pois pode causar uma confusao nos arquivos que o bot utiliza
 6. Caso queira sugerir alguma alteracao, criar uma branch separada e fazer um PR
 
-# TO DO
+## To Do
 
 Refatorar o algoritmo para melhorar legibilidade e facilitar atualizacoes futurasAdicionar algumas funcionalidades(ex, buscar cnpj da empresa para procurar o ticker, maior filtragem para postar tweets, talvez a imagem como um comentario)
