@@ -2,7 +2,8 @@
 
 Um bot automatizado no Twitter (X) que publica informações sobre proventos, incluindo datas e valores, com dados extraídos diretamente da CVM.
 
-## AtencaoEsse repositorio esta configurado para rodar com GitHub Actions a cada hora, entao siga as instrucoes a seguir para nao quebrar nada:
+## Atencao
+Esse repositorio esta configurado para rodar com GitHub Actions a cada hora, entao siga as instrucoes a seguir para nao quebrar nada:
 
 1. De um 'git pull'
 2. Comente as linhas de "Fluxo Principal" no arquivo main.py
