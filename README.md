@@ -12,10 +12,19 @@ Esse repositorio esta configurado para rodar com GitHub Actions a cada hora, ent
 5. Favor nao dar commit em nada na main para que os arquivos json locais e do repo nao fiquem diferentes pois pode causar uma confusao nos arquivos que o bot utiliza
 6. Caso queira sugerir alguma alteracao, criar uma branch separada e fazer um PR
 
-## To Do
+## To Do - Nice
 
 1. Refatorar o algoritmo para melhorar legibilidade e facilitar atualizacoes futuras
 2. Adicionar algumas funcionalidades(ex, buscar cnpj da empresa para procurar o ticker, maior filtragem para postar tweets, talvez a imagem como um comentario)
-3. Melhorar funcao que captura imagem do doc pois esta falhando as vezes e sempre por esse motivo "Failed to open file 'temp.pdf"
-4. Criar um .env.example
-5. Usar Enum
+3. Criar um .env.example
+4. Usar Enum
+
+## To Do - Must
+
+1. Melhorar funcao 'salvar_primeira_pagina_pdf()' ssa que captura imagem do doc pois esta falhando as vezes e sempre por esse motivo "Failed to open file 'temp.pdf"
+    a) Quando isso acontece, posta os proventos ate o antes de falhar, porem a partir do que falha nao posta mais nenhum provento
+    b) O commit automatico que salva os links encontrados e os postados so acontece quando a Run e concluida com sucesso
+    c) Isso deve ser arrumado com urgencia pois na proxima Run do GitHub Actions, ira postar proventos que ja foram postados anteriormente
+    d) Ideia inicial de solucao: Usar try na funcao que captura imagem para pelo menos evitar de a Run falhar
+    e) Apos isso, pensar em algo para talvez postar sem a foto do documento mesmo ou tentar processar novamente
+    
