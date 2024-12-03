@@ -17,3 +17,5 @@ Esse repositorio esta configurado para rodar com GitHub Actions a cada hora, ent
 1. Refatorar o algoritmo para melhorar legibilidade e facilitar atualizacoes futuras
 2. Adicionar algumas funcionalidades(ex, buscar cnpj da empresa para procurar o ticker, maior filtragem para postar tweets, talvez a imagem como um comentario)
 3. Melhorar funcao que captura imagem do doc pois esta falhando as vezes e sempre por esse motivo "Failed to open file 'temp.pdf"
+4. Criar um .env.example
+5. Usar Enum
