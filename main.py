@@ -228,22 +228,30 @@ def post_tweets(provento_links):
                 # Upload da imagem usando `api` v1.1 pq v2 nao tem nada na docs
                 media = api.media_upload(image_path)
 
-                client.create_tweet( # postagem do tweet
+                client.create_tweet( # postagem do tweet com imagem
                     text=tweet_content,
                     media_ids=[media.media_id]
                 )
 
                 os.remove(image_path)
-                print(f"Tweet postado: {tweet_content}")
-            except tweepy.errors.Forbidden:
-                print(f"Erro ou tweet duplicado ignorado: {tweet_content}")
-                os.remove(image_path)
-                continue
+                print(f"Tweet postado com imagem: {tweet_content}")
+            except Exception as e:
+                # se falhar p pegar imagem
+                print(f"Erro ao processar imagem para o link {link_download}. Publicando sem imagem. Detalhes: {e}")
+                try:
+                    client.create_tweet( # postagem do tweet sem imagem
+                        text=tweet_content
+                    )
+                    print(f"Tweet postado sem imagem: {tweet_content}")
+                except tweepy.errors.Forbidden:
+                    print(f"Erro ou tweet duplicado ignorado: {tweet_content}")
+                    continue
 
             posted_links.append(link_download)
             save_json("last_posted_download.json", posted_links)
             print(f"Quantidade de links postados ao total: {len(posted_links)}\n")
             time.sleep(60)
+
 
 
 
